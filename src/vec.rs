@@ -1,3 +1,5 @@
+extern crate rand;
+use rand::Rng;
 
 #[derive(Debug, Copy, Clone, PartialEq)]
 pub struct Vec3{
@@ -47,7 +49,22 @@ impl Vec3{
         self.x * self.x + self.y * self.y + self.z * self.z
      }
 
+    pub fn random() -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3::new( rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>() )
+    }
+    pub fn random_in_unit_sphere() -> Vec3 {
+       loop {
+         let p = Vec3::random();
+         if p.length_squared() < 1.0  {
+             return p;
+         }
+       }    
+    }
 
+    pub fn random_unit_vector() -> Vec3{
+        Vec3::normalize(Vec3::random_in_unit_sphere())
+    }
 }
 
 impl std::ops::Add<f32> for Vec3{
