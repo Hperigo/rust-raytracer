@@ -4,7 +4,6 @@ use rand::Rng;
 use std::sync::*;
 
 // use crate::color::Color;
-use crate::materials::Material;
 use crate::color::Color;
 use crate::vec::Vec3;
 use crate::ray::Ray;
@@ -114,6 +113,7 @@ impl HittableList{
     }
 }
 
+/*
 fn hit_sphere(center : &Vec3, radius : f32, r : &Ray ) -> f32 {
     
     let oc = r.origin - *center;
@@ -127,8 +127,8 @@ fn hit_sphere(center : &Vec3, radius : f32, r : &Ray ) -> f32 {
     }else{
         return (- half_b - discriminant.sqrt() ) / a;
     }
-
 }
+*/
 
 fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
     
@@ -140,19 +140,12 @@ fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
 
     if hit_world.hit(r, 0.001, f32::INFINITY, &mut rec) {
         let target = rec.p + rec.normal + Vec3::random_unit_vector();
-        let cf = ( rec.normal + Vec3::one() ) * 0.5;
-        // return Color::new_from_f32(cf.x, cf.y, cf.z);
-        //
-
         return ray_color( &Ray::new(rec.p,  target - rec.p), hit_world, depth - 1) * 0.5;
-        //return cf;
     }
 
     let unit_vector = Vec3::normalize(r.dir);
     let t = 0.5 * (unit_vector.y + 1.0);
     let v =  Vec3::new(1.0, 1.0, 1.0) * (1.0 - t) + Vec3::new(0.5, 0.7, 1.0) * t; 
-
-    // Color::new_from_f32(v.x, v.y, v.z)
     v
 }
 
@@ -215,13 +208,11 @@ impl Tile{
         
         let viewport_height = 2.0;
         let viewport_width = viewport_height * world.render_aspect_ratio;
-        let focal_length = 1.0;
-
-        let origin = Vec3::zero();
-        let horizontal = Vec3::new(viewport_width, 0., 0.);
-        let vertical = Vec3::new(0., viewport_height, 0.); 
-
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - Vec3::new(0., 0., focal_length);
+        
+        let _focal_length = 1.0;
+        let _origin = Vec3::zero();
+        let _horizontal = Vec3::new(viewport_width, 0., 0.);
+        let _vertical = Vec3::new(0., viewport_height, 0.); 
 
         let mut rng = rand::thread_rng();
 
@@ -231,7 +222,7 @@ impl Tile{
                 
                 let mut pixel_sample = Vec3::zero();
                 let num_of_samples = 16;
-                for i in 0..num_of_samples{
+                for _ in 0..num_of_samples{
 
                     let u = (screen_pos.0 as f32 + rng.gen::<f32>() ) / (world.render_width as f32 - 1.0); 
                     let v = (screen_pos.1 as f32 + rng.gen::<f32>() ) / (world.render_height as f32  - 1.0); 

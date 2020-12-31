@@ -22,8 +22,8 @@ fn main() {
     let render_data  = std::sync::Arc::new( RwLock::new( RenderData::new() ) ); 
 
     let start = Instant::now();
-    let w = 500;
-    let h = 500;
+    let w = 1500;
+    let h = 1000;
     
     {
         let mut render_data_w = render_data.write().unwrap();
@@ -80,7 +80,7 @@ fn main() {
 
     
     let num_of_threads = {
-        let num = 8;
+        let num = 4;
         if tiles.len() < num {
             tiles.len()
         }else{
@@ -114,23 +114,20 @@ fn main() {
         handles.push(j);
     }
 
-    let mut final_tiles = Vec::new();
     for k in handles {
-       let mut t =  k.join().unwrap();
-        final_tiles.append(&mut t);
+       let rendered_tiles =  k.join().unwrap();
+       for t in rendered_tiles{
+            t.write_data(&mut data, w, h);
+        }
     }
 
-    println!("1- program took: {}ms", start.elapsed().as_millis());
-    for t in final_tiles{
-        t.write_data(&mut data, w, h);
-    }
-
-    println!("2- merging tiles took: {}ms", start.elapsed().as_millis());
+    let render_duration = start.elapsed().as_millis();
+    println!("1- program took: {}ms", render_duration);
 
     let mut img : image::ImageBuffer<image::Rgb<u8>, Vec<u8>> = image::ImageBuffer::from_raw(w as u32, h as u32, data).ok_or("Error Creating buffer").unwrap();
     img = image::imageops::resize(&img, ((w as f32) * 1.) as u32, ((h as f32) * 1.0) as u32, image::imageops::FilterType::Lanczos3);
     img = image::imageops::flip_vertical(&img);
     img.save("test.png").unwrap();
     
-    println!("3- writing file to disk took: {}ms", start.elapsed().as_millis());
+    println!("2- writing file to disk took: {}ms", start.elapsed().as_millis() - render_duration);
 }
