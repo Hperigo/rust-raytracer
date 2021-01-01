@@ -8,11 +8,11 @@ pub struct Sphere {
 }
 
 impl Sphere{ 
-    pub fn new(center : Vec3, radius : f32) -> Self{
+    pub fn new(center : Vec3, radius : f32, albedo : Vec3) -> Self{
         Sphere{
             center,
             radius,
-            material : Box::new( Lambertian { albedo : Vec3::one() } ), 
+            material : Box::new( Lambertian { albedo } ), 
         }
     }
 }

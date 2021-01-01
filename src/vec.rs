@@ -65,6 +65,11 @@ impl Vec3{
     pub fn random_unit_vector() -> Vec3{
         Vec3::normalize(Vec3::random_in_unit_sphere())
     }
+
+    pub fn near_zero(&self) -> bool {
+        let m = std::f32::MIN;
+        self.x.abs() < m && self.y.abs() < m && self.z.abs() < m
+    }
 }
 
 impl std::ops::Add<f32> for Vec3{
@@ -132,9 +137,9 @@ impl std::ops::Mul<Vec3> for Vec3{
 
     fn mul(self, rhs : Vec3) -> Vec3{ 
         Vec3 {
-            x: self.x / rhs.x,
-            y: self.y / rhs.y,
-            z: self.z / rhs.z,
+            x: self.x * rhs.x,
+            y: self.y * rhs.y,
+            z: self.z * rhs.z,
         }
     }
 }

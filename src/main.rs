@@ -1,6 +1,4 @@
 extern crate image;
-extern crate crossbeam;
-
 
 use std::sync::*;
 use std::time::Instant;
@@ -22,8 +20,8 @@ fn main() {
     let render_data  = std::sync::Arc::new( RwLock::new( RenderData::new() ) ); 
 
     let start = Instant::now();
-    let w = 1500;
-    let h = 1000;
+    let w = 500;
+    let h = 250;
     
     {
         let mut render_data_w = render_data.write().unwrap();
