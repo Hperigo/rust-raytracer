@@ -7,17 +7,18 @@ use std::sync::*;
 use crate::color::Color;
 use crate::vec::Vec3;
 use crate::ray::Ray;
-
 use crate::geometry::Sphere;
-
 use crate::camera::Camera;
+
+use crate::materials::{Material, Lambertian};
 
 #[derive(Clone)]
 pub struct HitRecord{
-pub    p : Vec3,
-pub   normal : Vec3,
-pub    t : f32,
+pub    p         : Vec3,
+pub   normal     : Vec3,
+pub   t          : f32,
 pub   front_face : bool,
+pub   material   : std::boxed::Box<dyn Material>,
 }
 
 
@@ -28,6 +29,7 @@ impl HitRecord{
             normal : Vec3::zero(),
             t : 0.0,
             front_face : true,
+            material : std::boxed::Box::new( Lambertian{ albedo : Vec3::new(0.0, 0.0, 0.2) } ),
         }
     }
     pub fn set_face_normal(&mut self, r : &Ray, outward_normal : &Vec3){
@@ -71,6 +73,7 @@ impl Hittable for Sphere {
         hit_record.p = r.at(root);
         let normal = (hit_record.p - self.center) / self.radius;
         hit_record.set_face_normal(r, &normal);
+        hit_record.material =  self.material.clone_box();
         return true;
     }
 }
@@ -106,29 +109,12 @@ impl HittableList{
             objects : Vec::new(), 
        };
     
-       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, 0.0, -1.0), 0.5 )));  
-       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, -100.5, -1.0), 100.0 )));  
+       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, 0.0, -1.0), 0.5, Vec3::new(0.9, 0.1, 0.1) )));  
+       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, -100.5, -1.0), 100.0, Vec3::new(0.3, 0.3, 0.7) )));  
 
        return table;
     }
 }
-
-/*
-fn hit_sphere(center : &Vec3, radius : f32, r : &Ray ) -> f32 {
-    
-    let oc = r.origin - *center;
-    let a = r.dir.length_squared();
-    let half_b = Vec3::dot(&oc, &r.dir);
-    let c = oc.length_squared() - radius * radius;
-    let discriminant = half_b * half_b - a * c;
-
-    if discriminant < 0.0 {
-        return -1.0;
-    }else{
-        return (- half_b - discriminant.sqrt() ) / a;
-    }
-}
-*/
 
 fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
     
@@ -139,8 +125,15 @@ fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
     }
 
     if hit_world.hit(r, 0.001, f32::INFINITY, &mut rec) {
-        let target = rec.p + rec.normal + Vec3::random_unit_vector();
-        return ray_color( &Ray::new(rec.p,  target - rec.p), hit_world, depth - 1) * 0.5;
+
+        let mut scattered = Ray::new(Vec3::zero(), Vec3::zero() );
+        let mut attenuation = Vec3::one();
+
+        if rec.material.scatter(r, &rec, &mut attenuation, &mut scattered) {
+            return attenuation * ray_color(&scattered, &hit_world,  depth - 1);
+        }else{
+            return Vec3::zero();
+        }
     }
 
     let unit_vector = Vec3::normalize(r.dir);

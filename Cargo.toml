@@ -8,5 +8,4 @@ edition = "2018"
 
 [dependencies]
 image = "*"
-crossbeam = "*"
 rand = "*"

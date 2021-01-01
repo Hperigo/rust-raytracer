@@ -32,6 +32,7 @@ impl Color<u8>{
         } 
     }
 
+    #[allow(dead_code)]
     pub fn red() -> Self{
         Color{ r:  255, g : 0, b:  0, }        
     }
