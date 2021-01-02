@@ -62,6 +62,17 @@ impl Vec3{
        }    
     }
 
+    pub fn reflect( v : Vec3, n : Vec3 ) -> Vec3{
+        v - 2.0 * Vec3::dot(&v,  &n) * n
+    }
+
+    pub fn refract( uv : Vec3, n : Vec3, etai_over_etat : f32 ) -> Vec3{
+        let cos_theta = Vec3::dot( &(uv * -1.0), &n ).min(1.0);
+        let r_out_perp = etai_over_etat * (uv + cos_theta * n);
+        let r_out_parallel = ((1.0 - r_out_perp.length_squared()).sqrt() * -1.0) * n;
+        r_out_perp + r_out_parallel
+    }
+
     pub fn random_unit_vector() -> Vec3{
         Vec3::normalize(Vec3::random_in_unit_sphere())
     }
@@ -72,6 +83,8 @@ impl Vec3{
     }
 }
 
+
+// TRAIT implementations -----
 impl std::ops::Add<f32> for Vec3{
     type Output = Vec3;
 
@@ -96,6 +109,18 @@ impl std::ops::Add<Vec3> for Vec3{
     }
 }
 
+impl std::ops::Sub<Vec3> for f32{
+    type Output = Vec3;
+
+    fn sub(self, rhs : Vec3) -> Vec3{ 
+        Vec3 {
+            x: self - rhs.x,
+            y: self - rhs.y,
+            z: self - rhs.z,
+        }
+    }
+}
+
 impl std::ops::Sub<f32> for Vec3{
     type Output = Vec3;
 
@@ -116,6 +141,18 @@ impl std::ops::Sub<Vec3> for Vec3{
             x: self.x - rhs.x,
             y: self.y - rhs.y,
             z: self.z - rhs.z,
+        }
+    }
+}
+
+impl std::ops::Mul<Vec3> for f32{
+    type Output = Vec3;
+
+    fn mul(self, rhs : Vec3) -> Vec3{ 
+        Vec3 {
+            x: self * rhs.x,
+            y: self * rhs.y,
+            z: self * rhs.z,
         }
     }
 }

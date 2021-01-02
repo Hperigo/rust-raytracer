@@ -7,114 +7,9 @@ use std::sync::*;
 use crate::color::Color;
 use crate::vec::Vec3;
 use crate::ray::Ray;
-use crate::geometry::Sphere;
 use crate::camera::Camera;
+use crate::hitrecord::{HitRecord, Hittable, HittableList};
 
-use crate::materials::{Material, Lambertian};
-
-#[derive(Clone)]
-pub struct HitRecord{
-pub    p         : Vec3,
-pub   normal     : Vec3,
-pub   t          : f32,
-pub   front_face : bool,
-pub   material   : std::boxed::Box<dyn Material>,
-}
-
-
-impl HitRecord{
-    pub fn new()->Self{
-        HitRecord{
-            p : Vec3::zero(),
-            normal : Vec3::zero(),
-            t : 0.0,
-            front_face : true,
-            material : std::boxed::Box::new( Lambertian{ albedo : Vec3::new(0.0, 0.0, 0.2) } ),
-        }
-    }
-    pub fn set_face_normal(&mut self, r : &Ray, outward_normal : &Vec3){
-        self.front_face = Vec3::dot(&r.dir, &outward_normal) < 0.0;
-        self.normal = if self.front_face  { *outward_normal } else { *outward_normal * -1.0 }
-    }
-} 
-
-trait Hittable{
-    fn hit(&self, ray : &Ray, t_min : f32, t_max : f32, hit_record : &mut HitRecord ) -> bool;
-}
-
-
-
-impl Hittable for Sphere {
-    
-    fn hit(&self, r : &Ray, t_min : f32, t_max : f32, hit_record : &mut HitRecord ) -> bool{
-        let oc = r.origin - self.center;
-        let a = r.dir.length_squared();
-        let half_b = Vec3::dot(&oc, &r.dir);
-        let c = oc.length_squared() - self.radius * self.radius;
-        let discriminant = half_b * half_b - a * c;
-
-        if discriminant < 0.0
-        { 
-            return false;
-        }
-
-        let sqrtd = discriminant.sqrt();
-
-        let mut root = (-half_b - sqrtd) / a;
-        if root < t_min || t_max < root {
-            root = (-half_b + sqrtd) / a;
-
-            if root < t_min || t_max < root {
-                return false;
-            }
-        }
-
-        hit_record.t = root;
-        hit_record.p = r.at(root);
-        let normal = (hit_record.p - self.center) / self.radius;
-        hit_record.set_face_normal(r, &normal);
-        hit_record.material =  self.material.clone_box();
-        return true;
-    }
-}
-
-
-pub struct HittableList {
-        objects : Vec<Box<dyn Hittable + Send + Sync>>,
-}
-
-impl Hittable for HittableList{
-    
-    
-    fn hit(&self, r : &Ray, t_min : f32, t_max : f32, hit_record : &mut HitRecord ) -> bool{
-        let mut temp_rec = HitRecord::new();
-        let mut hit_anything = false;
-
-        let mut closest_so_far = t_max;
-
-        for obj in &self.objects{
-            if obj.hit(&r, t_min, closest_so_far, &mut temp_rec) {
-                hit_anything = true;
-                closest_so_far = temp_rec.t;
-                *hit_record = temp_rec.clone();
-            }
-        }
-        return hit_anything;
-    }
-}
-
-impl HittableList{
-    pub fn new() -> Self{
-       let mut table = HittableList{
-            objects : Vec::new(), 
-       };
-    
-       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, 0.0, -1.0), 0.5, Vec3::new(0.9, 0.1, 0.1) )));  
-       table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, -100.5, -1.0), 100.0, Vec3::new(0.3, 0.3, 0.7) )));  
-
-       return table;
-    }
-}
 
 fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
     
@@ -129,10 +24,12 @@ fn ray_color(r : &Ray, hit_world : &HittableList, depth : i32) -> Vec3 {
         let mut scattered = Ray::new(Vec3::zero(), Vec3::zero() );
         let mut attenuation = Vec3::one();
 
-        if rec.material.scatter(r, &rec, &mut attenuation, &mut scattered) {
-            return attenuation * ray_color(&scattered, &hit_world,  depth - 1);
-        }else{
-            return Vec3::zero();
+        if let Some(m)  = rec.material.clone() {
+            if m.scatter(r, &rec, &mut attenuation, &mut scattered) {
+                return attenuation * ray_color(&scattered, &hit_world,  depth - 1);
+            }else{
+                return Vec3::zero();
+            }
         }
     }
 
@@ -188,9 +85,7 @@ impl Tile{
     }
 
     fn world_location_of_pixel(&self, x : usize, y : usize ) -> (usize, usize) {
-        let xx = self.x + x;
-        let yy = self.y + y;
-        (xx, yy)
+        (self.x + x, self.y + y)
     }
 
     pub fn run<'a>(&mut self, render_data : &'a RenderDataHandle){

@@ -9,7 +9,9 @@ mod ray;
 mod geometry;
 mod renderer;
 mod materials;
+mod hitrecord;
 use renderer::{RenderData, Tile};
+
 
 mod camera;
 use camera::Camera;
@@ -21,7 +23,7 @@ fn main() {
 
     let start = Instant::now();
     let w = 500;
-    let h = 250;
+    let h = 400;
     
     {
         let mut render_data_w = render_data.write().unwrap();
@@ -64,7 +66,6 @@ fn main() {
             }
 
             let tile = Tile::new(
-
                              tile_x_pos, 
                              tile_y_pos,
                              tile_width,
