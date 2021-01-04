@@ -1,10 +1,12 @@
-## Ray Tracing in One Weekend but in rust.
+# Ray Tracing in One Weekend, but in rust.
 
-A raytracer written in rust as a project to practice rust and graphics programming. 
+![result](rt.png)
+
+A ray tracer written in rust, using Peter's Shirley book as guide: 
+[https://raytracing.github.io/books/RayTracingInOneWeekend.html](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
 
-
-#### Notes: 
+### Notes and TODO's: 
 
 1. Why do we need this type of MaterialClone trait? And also why cant we call `clone` on `geometry.rs` and can only call `clone_box`? 
 
@@ -28,3 +30,4 @@ impl Clone for Box<dyn Material> {
     }
 }
 ```
+2. Fix bug on thread tilling logic.
