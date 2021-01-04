@@ -53,6 +53,12 @@ impl Vec3{
         let mut rng = rand::thread_rng();
         Vec3::new( rng.gen::<f32>(), rng.gen::<f32>(), rng.gen::<f32>() )
     }
+    
+    pub fn random_in_range(min : f32, max : f32) -> Vec3 {
+        let mut rng = rand::thread_rng();
+        Vec3::new( rng.gen_range(min..max), rng.gen_range(min..max), rng.gen_range(min..max) )
+    }
+
     pub fn random_in_unit_sphere() -> Vec3 {
        loop {
          let p = Vec3::random();
@@ -75,6 +81,17 @@ impl Vec3{
 
     pub fn random_unit_vector() -> Vec3{
         Vec3::normalize(Vec3::random_in_unit_sphere())
+    }
+
+    pub fn random_unit_circle() -> Vec3 {
+        let mut rng = rand::thread_rng();
+        
+        loop {
+            let p = Vec3::new( rng.gen::<f32>(), rng.gen::<f32>(), 0.0 );
+            if p.length_squared() > 1.0 { continue; };
+
+            return p; 
+        };
     }
 
     pub fn near_zero(&self) -> bool {

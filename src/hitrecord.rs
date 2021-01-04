@@ -1,10 +1,10 @@
 use crate::vec::Vec3;
 use crate::ray::Ray;
-use crate::materials::{Material, Lambertian, Metal, Dieletric};
-use crate::geometry::Sphere;
+use crate::materials::{Material};
+
 #[derive(Clone)]
 pub struct HitRecord{
-    pub    p         : Vec3,
+    pub   p          : Vec3,
     pub   normal     : Vec3,
     pub   t          : f32,
     pub   front_face : bool,
@@ -19,12 +19,14 @@ impl HitRecord{
             normal : Vec3::zero(),
             t : 0.0,
             front_face : true,
-            material : None, //std::boxed::Box::new( Lambertian{ albedo : Vec3::new(0.0, 0.0, 0.2) } ),
+            material : None,
         }
     }
     pub fn set_face_normal(&mut self, r : &Ray, outward_normal : &Vec3){
+
         self.front_face = Vec3::dot(&r.dir, &outward_normal) < 0.0;
         self.normal = if self.front_face  { *outward_normal } else { *outward_normal * -1.0 }
+        
     }
 } 
 
@@ -57,19 +59,10 @@ impl Hittable for HittableList{
 
 impl HittableList{
 
-    pub fn new() -> Self{
-        let mut table = HittableList{
-                objects : Vec::new(), 
-        };
-
-        // floor 
-        table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, -100.5, -1.0), 100.0,  Box::new( Lambertian{ albedo :  Vec3::new(0.7, 0.8, 0.4) } ) )));
-
-        //spheres ---
-        table.objects.push( Box::new( Sphere::new( Vec3::new(-1.0, 0.0, -1.0),0.5, Box::new( Dieletric{ ir : 0.9 } ) )));  
-        table.objects.push( Box::new( Sphere::new( Vec3::new(0.0, 0.0, -1.0), 0.5, Box::new( Lambertian{ albedo :  Vec3::new(0.4, 0.4, 0.4) } ) )));  
-        table.objects.push( Box::new( Sphere::new( Vec3::new(1.0, 0.0, -1.0), 0.5, Box::new( Metal{ albedo :  Vec3::new(0.9, 0.8, 0.4), fuzz : 0.9 } ) )));  
-
-        return table;
+    pub fn new(objects : Vec<Box<dyn Hittable + Send + Sync>>) -> Self{
+        
+        HittableList{
+            objects
+        } 
     }
 }

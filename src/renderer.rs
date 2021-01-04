@@ -45,20 +45,27 @@ pub struct RenderData {
     pub render_aspect_ratio : f32,
     
     pub max_depth : i32,
+    pub samples_per_pixel : i32,
     pub hittable : HittableList,
     pub camera  : Camera,
 }
 
 impl RenderData{
-    pub fn new() -> Self {
+
+    // render_data_w.render_width = w;
+    // render_data_w.render_height = h;
+    // render_data_w.render_aspect_ratio = w as f32 / h as f32; 
+
+    pub fn new(width : usize, height : usize, aspect_ratio : f32, spp : i32, ray_depth: i32 , camera : Camera, objects : Vec<Box<dyn Hittable + Send + Sync>> ) -> Self {
         RenderData{
-            render_width : 0,
-            render_height : 0,
-            render_aspect_ratio : 0.,
+            render_width : width,
+            render_height : height,
+            render_aspect_ratio : aspect_ratio,
             
-            max_depth : 10,
-            hittable : HittableList::new(),
-            camera : Camera::new(1.0),
+            samples_per_pixel : spp,
+            max_depth : ray_depth,
+            hittable : HittableList::new(objects),
+            camera,// Camera::new(90.0,1.0),
         }   
     }
 }
@@ -92,16 +99,8 @@ impl Tile{
         self.data.resize(self.w * self.h, Color::black() );
         //println!("Running on thread-id: {:?}", std::thread::current().id() ); 
 
-        let world = render_data.read().unwrap();
-        
-        let viewport_height = 2.0;
-        let viewport_width = viewport_height * world.render_aspect_ratio;
-        
-        let _focal_length = 1.0;
-        let _origin = Vec3::zero();
-        let _horizontal = Vec3::new(viewport_width, 0., 0.);
-        let _vertical = Vec3::new(0., viewport_height, 0.); 
-
+        let world = render_data.read().unwrap();    
+        let num_of_samples = world.samples_per_pixel;
         let mut rng = rand::thread_rng();
 
         for y in 0..self.h{
@@ -109,7 +108,7 @@ impl Tile{
                 let screen_pos = self.world_location_of_pixel(x, y);
                 
                 let mut pixel_sample = Vec3::zero();
-                let num_of_samples = 16;
+
                 for _ in 0..num_of_samples{
 
                     let u = (screen_pos.0 as f32 + rng.gen::<f32>() ) / (world.render_width as f32 - 1.0); 
