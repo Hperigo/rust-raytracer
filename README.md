@@ -2,7 +2,7 @@
 
 ![result](rt.png)
 
-A ray tracer written in rust, using Peter's Shirley book as guide: 
+A ray tracer written in rust, using Peter Shirley book as guide: 
 [https://raytracing.github.io/books/RayTracingInOneWeekend.html](https://raytracing.github.io/books/RayTracingInOneWeekend.html)
 
 
